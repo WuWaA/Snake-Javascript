@@ -3,26 +3,21 @@ var h = 50;
 var s = 10;
 var cwidth = w * s;
 var cheight = h * s;
-var snake = [
-    {x: w / 2, y: h / 2},
-    {x: w / 2 - 1, y: h / 2},
-    {x: w / 2 - 2, y: h / 2},
-    {x: w / 2 - 3, y: h / 2},
-    {x: w / 2 - 4, y: h / 2}
-];
-var direction = 2;
-var start = 0;
+var snake;
+var direction;
+var start;
 var food;
-var frame = 5;
-var score = 0;
+var frame;
+var score;
 var scoreDiv;
-var level = 0;
+var level;
 var levelDiv;
 
 function setup() {
     createCanvas(cwidth, cheight);
-    frameRate(frame);
+    reset();
     noLoop();
+    frameRate(frame);
     scoreDiv = createDiv('Score: ' + score);
     levelDiv = createDiv('Speed Level: ' + level);
 }
@@ -30,11 +25,13 @@ function setup() {
 function draw() {
     scoreDiv.html('Score: ' + score);
     levelDiv.html('Speed Level: ' + level);
+    // not start yet
     if (start === 0) {
         textSize(20);
         textAlign(CENTER);
         text('Press "Space" To Start', cwidth / 2, 30);
     }
+    // after start
     if (start === 1) {
         noStroke();
         scale(1);
@@ -43,67 +40,55 @@ function draw() {
         fill(0);
         text('Game Over, Score: ' + score, cwidth / 2, 30);
         text('Press "Space" To Restart', cwidth / 2, 60);
-        start = 0;
-        score = 0;
-        level = 0;
-        frame = 5;
-        direction = 2;
-        snake = [
-            {x: w / 2, y: h / 2},
-            {x: w / 2 - 1, y: h / 2},
-            {x: w / 2 - 2, y: h / 2},
-            {x: w / 2 - 3, y: h / 2},
-            {x: w / 2 - 4, y: h / 2}
-        ];
+        reset();
         noLoop();
     }
     if (start === 2) {
-        fill(255);
-        stroke(255);
-        rect(0, 0, cwidth, cheight);
-        fill(0);
-        stroke(0);
-        scale(s);
-        point(food[0], food[1]);
-        update();
+        refresh();
+        paint();
         check();
+        update();
     }
 }
 
 function keyPressed() {
     if (keyCode == 32 && start === 0) { // Space
-        start = 2; // Change the status of start
-        food = randomPosition(); // Create food
-        level++; // Level becomes one
+        start = 2; // change the status of start
+        food = randomPosition(); // create food
+        level++; // level becomes one
         loop();
-        redraw();
     }
-    if ((keyCode == 38 || keyCode == 87) && direction != 3) { // Up and W
+    if ((keyCode == 38 || keyCode == 87) && direction != 3) { // up and w
         direction = 1;
     }
-    if ((keyCode == 39 || keyCode == 68) && direction != 4) { // Right and D
+    if ((keyCode == 39 || keyCode == 68) && direction != 4) { // right and d
         direction = 2;
     }
-    if ((keyCode == 40 || keyCode == 83) && direction != 1) { // Down and S
+    if ((keyCode == 40 || keyCode == 83) && direction != 1) { // down and s
         direction = 3;
     }
-    if ((keyCode == 37 || keyCode == 65) && direction != 2) { // Left and A
+    if ((keyCode == 37 || keyCode == 65) && direction != 2) { // left and a
         direction = 4;
     }
 }
 
 function randomPosition() {
-    return [Math.floor(Math.random() * w), Math.floor(Math.random() * h)];
+    var p = [Math.floor(Math.random() * w), Math.floor(Math.random() * h)];
+    for (var i = 0; i < snake.length; i++) {
+        // if food is on the body of snake, regenerate one
+        if (p[0] == snake[i].x && p[1] == snake[i].y) {
+            p = [Math.floor(Math.random() * w), Math.floor(Math.random() * h)];
+            i = 0;
+        }
+    }
+    return p;
 }
 
-// draw snake and update position
+// update position
 function update() {
-    for (var i = snake.length - 1; i >= 0; i--) {
-        point(snake[i].x, snake[i].y);
-        if (i != 0) {
-            snake[i].x = snake[i - 1].x;
-            snake[i].y = snake[i - 1].y;
-        }
+    for (var i = snake.length - 1; i > 0; i--) {
+        snake[i].x = snake[i - 1].x;
+        snake[i].y = snake[i - 1].y;
     }
     switch(direction) {
         case 1:
@@ -131,21 +116,50 @@ function check() {
         if (score % 5 == 0) {
             level++;
             frame += 5;
+            frameRate(frame);
         }
     }
     // touch wall
-    if (snake[0].x < 0 || snake[0].x > w || snake[0].y < 0 || snake[0].y > h) {
+    if (snake[0].x < 0 || snake[0].x >= w || snake[0].y < 0 || snake[0].y >= h) {
         start = 1;
     }
     // touch itself
-    var end = false;
     for (var i = 1; i < snake.length; i++) {
         if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-            end = true;
+            start = 1
             break;
         }
     }
-    if(end) {
-        start = 1;
+}
+
+// assign all values to default
+function reset() {
+    start = 0;
+    score = 0;
+    level = 0;
+    frame = 5;
+    direction = 2;
+    snake = [
+        {x: w / 2, y: h / 2},
+        {x: w / 2 - 1, y: h / 2},
+        {x: w / 2 - 2, y: h / 2},
+        {x: w / 2 - 3, y: h / 2},
+        {x: w / 2 - 4, y: h / 2}
+    ];
+}
+
+function refresh() {
+    fill(255);
+    stroke(255);
+    rect(0, 0, cwidth, cheight);
+    fill(0);
+    stroke(0);
+}
+
+function paint() {
+    scale(s);
+    point(food[0], food[1]);
+    for (var i = snake.length - 1; i >= 0; i--) {
+        point(snake[i].x, snake[i].y);
     }
 }
