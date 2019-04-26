@@ -31,11 +31,11 @@ function draw() {
         textAlign(CENTER);
         text('Press "Space" To Start', cwidth / 2, 30);
     }
-    // after start
+    // after game over
     if (start === 1) {
         noStroke();
         scale(1);
-        fill(150);
+        fill('rgba(0, 0, 0, 0.25)');
         rect(0, 0, cwidth, 80);
         fill(0);
         text('Game Over, Score: ' + score, cwidth / 2, 30);
@@ -43,6 +43,7 @@ function draw() {
         reset();
         noLoop();
     }
+    // after start
     if (start === 2) {
         refresh();
         paint();
@@ -113,9 +114,9 @@ function check() {
         snake.push({x: snake[snake.length - 1].x, y: snake[snake.length - 1].y});
         food = randomPosition();
         score++;
-        if (score % 5 == 0) {
+        if (score % 3 == 0) {
             level++;
-            frame += 5;
+            frame += 3;
             frameRate(frame);
         }
     }
@@ -152,13 +153,15 @@ function refresh() {
     fill(255);
     stroke(255);
     rect(0, 0, cwidth, cheight);
-    fill(0);
-    stroke(0);
 }
 
 function paint() {
+    fill(0);
+    stroke(0);
     scale(s);
+    stroke('red');
     point(food[0], food[1]);
+    stroke('black');
     for (var i = snake.length - 1; i >= 0; i--) {
         point(snake[i].x, snake[i].y);
     }
